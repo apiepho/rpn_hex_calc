@@ -7,87 +7,62 @@ var stack = [];
 var digits;
 var fmtHex = true;
 
+var ops = [
+  "drop",   "clr", "ac", "%d",
+  "1", "2", "3",   "+",  "|",
+  "4", "5", "6",   "-",  "&amp;",
+  "7", "8", "9",   "*",  "^",
+  "A", "B", "C",   "/",  "~",
+  "D", "E", "F",   "<<",  ">>",
+  "0", "enter"
+];
 
-var ops = [];
+var opsHexOnly = [
+                         "|",
+                         "&amp;",
+                         "^",
+  "A", "B", "C",         "~",
+  "D", "E", "F",   "<<", ">>"
+];
 
-
-document.getElementById("buttonFormat").onclick = formatClick;
-document.getElementById("buttonDrop").onclick   = function() {operationClick("drop")};
-document.getElementById("buttonClr").onclick    = function() {operationClick("clr")};
-document.getElementById("buttonClrAll").onclick = function() {operationClick("ac")};
-document.getElementById("buttonEnter").onclick  = function() {operationClick("enter")};
-
-document.getElementById("button0").onclick = function() {digitClick("0")};
-document.getElementById("button1").onclick = function() {digitClick("1")};
-document.getElementById("button2").onclick = function() {digitClick("2")};
-document.getElementById("button3").onclick = function() {digitClick("3")};
-document.getElementById("button4").onclick = function() {digitClick("4")};
-document.getElementById("button5").onclick = function() {digitClick("5")};
-document.getElementById("button6").onclick = function() {digitClick("6")};
-document.getElementById("button7").onclick = function() {digitClick("7")};
-document.getElementById("button8").onclick = function() {digitClick("8")};
-document.getElementById("button9").onclick = function() {digitClick("9")};
-document.getElementById("buttonA").onclick = function() {digitClick("A")};
-document.getElementById("buttonB").onclick = function() {digitClick("B")};
-document.getElementById("buttonC").onclick = function() {digitClick("C")};
-document.getElementById("buttonD").onclick = function() {digitClick("D")};
-document.getElementById("buttonE").onclick = function() {digitClick("E")};
-document.getElementById("buttonF").onclick = function() {digitClick("F")};
-
-document.getElementById("buttonPlus").onclick  = function() {operationClick("+")};
-document.getElementById("buttonMinus").onclick = function() {operationClick("-")};
-document.getElementById("buttonMul").onclick   = function() {operationClick("*")};
-document.getElementById("buttonDiv").onclick   = function() {operationClick("/")};
-
-document.getElementById("buttonOr").onclick         = function() {operationClick("|")};
-document.getElementById("buttonAnd").onclick        = function() {operationClick("&")};
-document.getElementById("buttonXor").onclick        = function() {operationClick("^")};
-document.getElementById("buttonNot").onclick        = function() {operationClick("~")};
-document.getElementById("buttonShiftLeft").onclick  = function() {operationClick("<<")};
-document.getElementById("buttonShiftRight").onclick = function() { operationClick(">>")};
-
-function formatClick() {
-  var op = document.getElementById("buttonFormat").innerHTML;
-  console.log(op);
+function buttonIdName(op) {
+  result = "button";
   switch (op) {
-    case "%d":
-      document.getElementById("buttonFormat").innerHTML = "%x";
-      document.getElementById("buttonA").setAttribute("disabled", "true");
-      document.getElementById("buttonB").setAttribute("disabled", "true");
-      document.getElementById("buttonC").setAttribute("disabled", "true");
-      document.getElementById("buttonD").setAttribute("disabled", "true");
-      document.getElementById("buttonE").setAttribute("disabled", "true");
-      document.getElementById("buttonF").setAttribute("disabled", "true");
-      document.getElementById("buttonOr").setAttribute("disabled", "true");
-      document.getElementById("buttonAnd").setAttribute("disabled", "true");
-      document.getElementById("buttonXor").setAttribute("disabled", "true");
-      document.getElementById("buttonNot").setAttribute("disabled", "true");
-      document.getElementById("buttonShiftLeft").setAttribute("disabled", "true");
-      document.getElementById("buttonShiftRight").setAttribute("disabled", "true");
-      fmtHex = false;
-      break;
-    case "%x":
-      document.getElementById("buttonFormat").innerHTML = "%d";
-      document.getElementById("buttonA").removeAttribute("disabled");
-      document.getElementById("buttonB").removeAttribute("disabled");
-      document.getElementById("buttonC").removeAttribute("disabled");
-      document.getElementById("buttonD").removeAttribute("disabled");
-      document.getElementById("buttonE").removeAttribute("disabled");
-      document.getElementById("buttonF").removeAttribute("disabled");
-      document.getElementById("buttonOr").removeAttribute("disabled");
-      document.getElementById("buttonAnd").removeAttribute("disabled");
-      document.getElementById("buttonXor").removeAttribute("disabled");
-      document.getElementById("buttonNot").removeAttribute("disabled");
-      document.getElementById("buttonShiftLeft").removeAttribute("disabled");
-      document.getElementById("buttonShiftRight").removeAttribute("disabled");
-      fmtHex = true;
-      break;
+    case "drop":  result += "Drop";       break;
+    case "clr":   result += "Clr";        break;
+    case "ac":    result += "ClrAll";     break;
+    case "%d":    result += "Format";     break;
+    case "+":     result += "Plus";       break;
+    case "|":     result += "Or";         break;
+    case "-":     result += "Minus";      break;
+    case "&amp;": result += "And";        break;
+    case "*":     result += "Mul";        break;
+    case "^":     result += "Xor";        break;
+    case "/":     result += "Div";        break;
+    case "~":     result += "Not";        break;
+    case "<<":    result += "ShiftLeft";  break;
+    case ">>":    result += "ShiftRight"; break;
+    case "enter": result += "Enter";      break;
     default:
+      result += op;
       break;
   }
-  formatLines(op);
+  return result;
 }
 
+function buttonWidthString(op) {
+  result = "button-";
+  switch (op) {
+    case "drop":
+    case "enter":
+      result += "double";
+      break;
+    default:
+      result += "single";
+      break;
+  }
+  return result;
+}
 
 function showDigits() {
   console.log('show digits\n');
@@ -171,6 +146,22 @@ function digitClick(digit) {
   pushDigit(digit);
 }
 
+function formatClick() {
+  op = $("#buttonFormat")[0].innerText;
+  switch (op) {
+    case "%d": $("#buttonFormat").html("%x"); fmtHex = false; break;
+    case "%x": $("#buttonFormat").html("%d"); fmtHex = true;  break;
+  }
+  for (i = 0; i < opsHexOnly.length; i++) {
+    str = "#" + buttonIdName(opsHexOnly[i]);
+    if (fmtHex)
+      $(str).removeAttr("disabled");
+    else
+      $(str).attr("disabled", "true");
+  }
+  formatLines(op);
+}
+
 function operationClick(op) {
   console.log(op);
   switch (op) {
@@ -191,26 +182,82 @@ function operationClick(op) {
   }
 }
 
+function buttonClickFunction(op) {
+  result = "";
+  switch (op) {
+    case "drop":
+    case "clr":
+    case "ac":
+    case "enter":
+      result = function() {operationClick(op)};
+      break;
+    case "%d":
+      result = formatClick;
+      break;
+    case "0":
+    case "1":
+    case "2":
+    case "3":
+    case "4":
+    case "5":
+    case "6":
+    case "7":
+    case "8":
+    case "9":
+    case "A":
+    case "B":
+    case "C":
+    case "D":
+    case "E":
+    case "F":
+    result = function() {digitClick(op)};
+    break;
+    case "+":
+    case "|":
+    case "-":
+    case "&amp;":
+    case "*":
+    case "^":
+    case "/":
+    case "~":
+    case "<<":
+    case ">>":
+    result = function() {operationClick(op)};
+    break;
+  }
+  return result;
+}
+
 function buildHtml() {
   // build results area
   var calc=$("#calculator");
-  var results = $("<div></div>");
-  results.addClass("results");
+  var results = $("<div></div>").addClass("results");
   for (i = MAX_LINES_SHOWN-1; i >= 0; i--) {
     line = $("<p></p>").addClass("result-line").attr("id", "line" + i);
     results.append(line);
   }
+
+  // build input line
   line = $("<p></p>").addClass("result-line").attr("id", "digits");
   results.append(line);
   calc.append(results);
 
-  // build rows of buttons
+  // build buttons
+  container = $("<div></div>").addClass("button-container");
+  for (i = 0; i < ops.length; i++) {
+    op = ops[i];
+    btn = $("<button></button>")
+          .addClass("button")
+          .addClass(buttonWidthString(op))
+          .attr("id", buttonIdName(op))
+          .html(op)
+          .click(buttonClickFunction(op));
+    container.append(btn);
+  }
+  calc.append(container);
 }
 
-function setup() {
-  buildHtml();
-  clearDigits();
-  clearLines();
-}
-
-setup();
+// build everything
+buildHtml();
+clearDigits();
+clearLines();
