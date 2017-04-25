@@ -1,0 +1,51 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+}
+
+.calc-font, .button {
+  font-size: 16px;
+  font-family: monospace;
+}
+
+.results {
+  width: 240px;
+}
+
+.button-container {
+  width: 300px;
+}
+
+.button {
+    border: none;
+    color: white;
+    /*padding: 15px 32px;*/
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    background-color: white;
+    color: black;
+    border: 2px solid #555555;
+}
+
+.button:focus {
+    outline: none;
+}
+
+.button:disabled {
+    background: #F5F5F5;
+    color : #C3C3C3;
+    border: 2px solid #AAAAAA;
+}
+
+.button-single {
+  width: 40px;
+  height: 40px;
+}
+
+.button-double {
+  width: 94px;
+  height: 40px;
+}

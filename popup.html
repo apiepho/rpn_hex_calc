@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RPM Hex Calculator</title>
+<link rel="stylesheet" href="popup.css"/>
+</head>
+<body>
+
+<p class="text-font">
+  RPN Hex Calculator
+</p>
+<div class="calc-font" id="calculator">
+</div>
+
+<div class="calc-font">
+<!--
+  <div class="results">
+    <p class="result-line" id="line3">.</p>
+    <p class="result-line" id="line2">.</p>
+    <p class="result-line" id="line1">.</p>
+    <p class="result-line" id="line0">.</p>
+    <p class="result-line" id="digits">> </p>
+  </div>
+-->
+  <div class="button-container">
+      <button class="button button-double" id="buttonDrop">drop</button>
+      <button class="button button-single" id="buttonClr">clr</button>
+      <button class="button button-single" id="buttonClrAll">ac</button>
+      <button class="button button-single" id="buttonFormat">%d</button>
+
+      <button class="button button-single" id="button1">1</button>
+      <button class="button button-single" id="button2">2</button>
+      <button class="button button-single" id="button3">3</button>
+      <button class="button button-single" id="buttonPlus">+</button>
+      <button class="button button-single" id="buttonOr">|</button>
+
+      <button class="button button-single" id="button4">4</button>
+      <button class="button button-single" id="button5">5</button>
+      <button class="button button-single" id="button6">6</button>
+      <button class="button button-single" id="buttonMinus">-</button>
+      <button class="button button-single" id="buttonAnd">&amp;</button>
+
+      <button class="button button-single" id="button7">7</button>
+      <button class="button button-single" id="button8">8</button>
+      <button class="button button-single" id="button9">9</button>
+      <button class="button button-single" id="buttonMul">*</button>
+      <button class="button button-single" id="buttonXor">^</button>
+
+      <button class="button button-single" id="buttonA">A</button>
+      <button class="button button-single" id="buttonB">B</button>
+      <button class="button button-single" id="buttonC">C</button>
+      <button class="button button-single" id="buttonDiv">/</button>
+      <button class="button button-single" id="buttonNot">~</button>
+
+      <button class="button button-single" id="buttonD">D</button>
+      <button class="button button-single" id="buttonE">E</button>
+      <button class="button button-single" id="buttonF">F</button>
+      <button class="button button-single" id="buttonShiftLeft"><<</button>
+      <button class="button button-single" id="buttonShiftRight">>></button>
+
+      <button class="button button-single" id="button0">0</button>
+      <button class="button button-double" id="buttonEnter">enter</button>
+
+  </div>
+</div>
+
+</body>
+<script type="text/javascript" src="jquery-3.2.1.slim.min.js"></script>
+<script type="text/javascript" src="popup.js"></script>
+</html>
