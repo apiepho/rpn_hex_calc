@@ -1,12 +1,20 @@
 // This code runs when the pop up opens
 
+///////////////////////////////////////////////////////////
+// CONSTANTS
+///////////////////////////////////////////////////////////
 var LEN_PROMPT      = 2;
 var MAX_DIGITS      = 8;
 var MAX_LINES_SHOWN = 4;
+
+// GLOBAL VARIABLES
 var stack = [];
 var digits;
 var fmtHex = true;
 
+///////////////////////////////////////////////////////////
+// TABLES
+///////////////////////////////////////////////////////////
 var ops = [
   "drop",   "clr", "ac", "%d",
   "1", "2", "3",   "+",  "|",
@@ -16,7 +24,24 @@ var ops = [
   "D", "E", "F",   "<<",  ">>",
   "0", "enter"
 ];
-
+var opNames = [
+  "Drop",   "Clr", "ClrAll",     "Format",
+  "1", "2", "3",   "Plus",       "Or",
+  "4", "5", "6",   "Minus",      "And",
+  "7", "8", "9",   "Mul",        "Xor",
+  "A", "B", "C",   "Div",        "Not",
+  "D", "E", "F",   "ShiftLeft",  "ShiftRight",
+  "0", "Enter"
+];
+var operations = [
+  "drop",   "clr", "ac", "%d",
+                   "+",  "|",
+                   "-",  "&amp;",
+                   "*",  "^",
+                   "/",  "~",
+                   "<<",  ">>",
+       "enter"
+];
 var opsHexOnly = [
                          "|",
                          "&amp;",
@@ -25,47 +50,11 @@ var opsHexOnly = [
   "D", "E", "F",   "<<", ">>"
 ];
 
-function buttonIdName(op) {
-  result = "button";
-  switch (op) {
-    case "drop":  result += "Drop";       break;
-    case "clr":   result += "Clr";        break;
-    case "ac":    result += "ClrAll";     break;
-    case "%d":    result += "Format";     break;
-    case "+":     result += "Plus";       break;
-    case "|":     result += "Or";         break;
-    case "-":     result += "Minus";      break;
-    case "&amp;": result += "And";        break;
-    case "*":     result += "Mul";        break;
-    case "^":     result += "Xor";        break;
-    case "/":     result += "Div";        break;
-    case "~":     result += "Not";        break;
-    case "<<":    result += "ShiftLeft";  break;
-    case ">>":    result += "ShiftRight"; break;
-    case "enter": result += "Enter";      break;
-    default:
-      result += op;
-      break;
-  }
-  return result;
-}
 
-function buttonWidthString(op) {
-  result = "button-";
-  switch (op) {
-    case "drop":
-    case "enter":
-      result += "double";
-      break;
-    default:
-      result += "single";
-      break;
-  }
-  return result;
-}
-
+///////////////////////////////////////////////////////////
+// DIGIT LINE FUNCTIONS
+///////////////////////////////////////////////////////////
 function showDigits() {
-  console.log('show digits\n');
   document.getElementById("digits").innerHTML = digits;
   document.getElementById("digits").focus();
 }
@@ -87,21 +76,45 @@ function popDigit() {
   showDigits();
 }
 
+function digitsEmpty() {
+  return (digits.length <= "> ".length);
+}
+
+function popValueFromDigits() {
+  var val;
+  if (fmtHex) {
+    val = parseInt(digits.substr(2), 16);
+  }
+  else {
+    val = parseInt(digits.substr(2));
+  }
+  return val;
+}
+
+function pushValueToDigits(value) {
+  if (fmtHex)
+    digits = "> " + value.toString(16);
+  else
+    digits = "> " + value.toString(10);
+}
+
+///////////////////////////////////////////////////////////
+// RESULT LINES FUNCTIONS
+///////////////////////////////////////////////////////////
 function showLines() {
   var val;
   var str;
   var line;
-  console.log('show lines\n');
   for (i=0; i<MAX_LINES_SHOWN; i++) {
     val = stack[i];
-    str = ".";
+    str = i+1 + ": ";
     if (val !== undefined) {
       if (fmtHex) {
-        str = ("00000000" + val.toString(16).substr(-8));
+        str += ("00000000" + val.toString(16).substr(-8));
         str = str.toUpperCase();
       }
       else {
-        str = val.toString(10);
+        str +=  val.toString(10);
       }
     }
     line = "line" + i;
@@ -110,7 +123,6 @@ function showLines() {
 }
 
 function formatLines(fmt) {
-  console.log('format line for %s\n', fmt);
   showLines();
 }
 
@@ -120,20 +132,16 @@ function clearLines() {
 }
 
 function pushLine() {
-  if (fmtHex) {
-    val = parseInt(digits.substr(2), 16);
-  }
-  else {
-    val = parseInt(digits.substr(2));
-  }
+  val = popValueFromDigits();
   stack.unshift(val);
   showLines();
   clearDigits();
 }
 
 function popLine() {
-  stack.shift();
+  val = stack.shift();
   showLines();
+  return (val === undefined ? 0 : val);
 }
 
 function clearAll() {
@@ -141,8 +149,31 @@ function clearAll() {
   clearLines();
 }
 
+///////////////////////////////////////////////////////////
+// OPERANDS FUNCTIONS
+///////////////////////////////////////////////////////////
+function getOneOperand() {
+  val1 = popLine();
+  return val1;
+}
+
+function getTwoOperands() {
+  var val1, val2;
+  if (digitsEmpty()) {
+    val1 = popLine();
+    val2 = popLine();
+  } else {
+    val1 = popValueFromDigits();
+    clearDigits();
+    val2 = popLine();
+  }
+  return {val1, val2};
+}
+
+///////////////////////////////////////////////////////////
+// CLICK FUNCTIONS
+///////////////////////////////////////////////////////////
 function digitClick(digit) {
-  console.log(digit);
   pushDigit(digit);
 }
 
@@ -163,7 +194,7 @@ function formatClick() {
 }
 
 function operationClick(op) {
-  console.log(op);
+  console.log("operationClick " + op);
   switch (op) {
     case "drop":
       popLine();
@@ -177,53 +208,50 @@ function operationClick(op) {
     case "enter":
       pushLine();
       break;
-    default:
+    case "+":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(val1 + val2);
+      pushLine();
+      break;
+
+    case "-":
+    case "*":
+    case "/":
+    case "|":
+    case "&amp;":
+    case "~":
+    case "<<":
+    case ">>":
       break;
   }
 }
 
 function buttonClickFunction(op) {
-  result = "";
+  result = function() {digitClick(op)}; // default
+  if (operations.indexOf(op) >= 0)
+    result = function() {operationClick(op)};
+  if (op == "%d")
+    result = formatClick;
+  return result;
+}
+
+///////////////////////////////////////////////////////////
+// BUILD HTML
+///////////////////////////////////////////////////////////
+function buttonIdName(op) {
+  return "button" + opNames[ops.indexOf(op)];
+}
+
+function buttonWidthString(op) {
+  result = "button-";
   switch (op) {
     case "drop":
-    case "clr":
-    case "ac":
     case "enter":
-      result = function() {operationClick(op)};
+      result += "double";
       break;
-    case "%d":
-      result = formatClick;
+    default:
+      result += "single";
       break;
-    case "0":
-    case "1":
-    case "2":
-    case "3":
-    case "4":
-    case "5":
-    case "6":
-    case "7":
-    case "8":
-    case "9":
-    case "A":
-    case "B":
-    case "C":
-    case "D":
-    case "E":
-    case "F":
-    result = function() {digitClick(op)};
-    break;
-    case "+":
-    case "|":
-    case "-":
-    case "&amp;":
-    case "*":
-    case "^":
-    case "/":
-    case "~":
-    case "<<":
-    case ">>":
-    result = function() {operationClick(op)};
-    break;
   }
   return result;
 }
@@ -257,7 +285,9 @@ function buildHtml() {
   calc.append(container);
 }
 
-// build everything
+///////////////////////////////////////////////////////////
+// MAIN
+///////////////////////////////////////////////////////////
 buildHtml();
 clearDigits();
 clearLines();

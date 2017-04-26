@@ -11,6 +11,10 @@ body {
   width: 240px;
 }
 
+.digits-hide {
+  display: none;
+}
+
 .button-container {
   width: 300px;
 }
