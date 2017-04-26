@@ -22,16 +22,16 @@ var ops = [
   "7", "8", "9",   "*",  "^",
   "A", "B", "C",   "/",  "~",
   "D", "E", "F",   "<<",  ">>",
-  "0", "enter"
+  ".", "0", "enter"
 ];
 var opNames = [
-  "Drop",   "Clr", "ClrAll",     "Format",
-  "1", "2", "3",   "Plus",       "Or",
-  "4", "5", "6",   "Minus",      "And",
-  "7", "8", "9",   "Mul",        "Xor",
-  "A", "B", "C",   "Div",        "Not",
-  "D", "E", "F",   "ShiftLeft",  "ShiftRight",
-  "0", "Enter"
+  "Drop",     "Clr", "ClrAll",     "Format",
+  "1",   "2", "3",   "Plus",       "Or",
+  "4",   "5", "6",   "Minus",      "And",
+  "7",   "8", "9",   "Mul",        "Xor",
+  "A",   "B", "C",   "Div",        "Not",
+  "D",   "E", "F",   "ShiftLeft",  "ShiftRight",
+  "Dot", "0", "Enter"
 ];
 var operations = [
   "drop",   "clr", "ac", "%d",
@@ -47,7 +47,8 @@ var opsHexOnly = [
                          "&amp;",
                          "^",
   "A", "B", "C",         "~",
-  "D", "E", "F",   "<<", ">>"
+  "D", "E", "F",   "<<", ">>",
+  "."
 ];
 
 
@@ -132,7 +133,12 @@ function clearLines() {
 }
 
 function pushLine() {
-  val = popValueFromDigits();
+  var val;
+  if (digitsEmpty()) {
+    val = stack[0];
+  } else {
+    val = popValueFromDigits();
+  }
   stack.unshift(val);
   showLines();
   clearDigits();
@@ -153,7 +159,12 @@ function clearAll() {
 // OPERANDS FUNCTIONS
 ///////////////////////////////////////////////////////////
 function getOneOperand() {
-  val1 = popLine();
+  var val1;
+  if (digitsEmpty()) {
+    val1 = popLine();
+  } else {
+    val1 = popValueFromDigits();
+  }
   return val1;
 }
 
@@ -190,6 +201,8 @@ function formatClick() {
     else
       $(str).attr("disabled", "true");
   }
+  // disable . for now
+  $("#buttonDot").attr("disabled", "true");
   formatLines(op);
 }
 
@@ -213,15 +226,45 @@ function operationClick(op) {
       pushValueToDigits(val1 + val2);
       pushLine();
       break;
-
     case "-":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(val1 - val2);
+      pushLine();
+      break;
     case "*":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(val1 * val2);
+      pushLine();
+      break;
     case "/":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(Math.round(val1 / val2));
+      pushLine();
+      break;
     case "|":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(val1 | val2);
+      pushLine();
+      break;
     case "&amp;":
+      var {val1, val2} = getTwoOperands();
+      pushValueToDigits(val1 & val2);
+      pushLine();
+      break;
     case "~":
+      var val1 = getOneOperand();
+      pushValueToDigits(~val1);
+      pushLine();
+      break;
     case "<<":
+      var val1 = getOneOperand();
+      pushValueToDigits(val1 << 1);
+      pushLine();
+      break;
     case ">>":
+      var val1 = getOneOperand();
+      pushValueToDigits(val1 >> 1);
+      pushLine();
       break;
   }
 }
@@ -246,8 +289,10 @@ function buttonWidthString(op) {
   result = "button-";
   switch (op) {
     case "drop":
-    case "enter":
       result += "double";
+      break;
+    case "enter":
+      result += "triple";
       break;
     default:
       result += "single";
@@ -283,6 +328,8 @@ function buildHtml() {
     container.append(btn);
   }
   calc.append(container);
+  // disable . for now
+  $("#buttonDot").attr("disabled", "true");
 }
 
 ///////////////////////////////////////////////////////////
