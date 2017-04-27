@@ -101,6 +101,7 @@ function pushValueToDigits(value) {
     digits = "> " + value.toString(16);
   else
     digits = "> " + value.toString(10);
+  digits = digits.toUpperCase();
 }
 
 ///////////////////////////////////////////////////////////
