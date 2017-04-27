@@ -6,6 +6,22 @@ require 'optparse'
 require 'ostruct'
 require 'watir'
 
+require './test_format.rb'
+require './test_clr.rb'
+require './test_clrall.rb'
+require './test_enter_drop.rb'
+require './test_simple_plus.rb'
+require './test_simple_minus.rb'
+require './test_simple_mul.rb'
+require './test_simple_div.rb'
+require './test_simple_or.rb'
+require './test_simple_and.rb'
+require './test_simple_xor.rb'
+require './test_simple_not.rb'
+require './test_simple_shiftleft.rb'
+require './test_simple_shiftright.rb'
+require './test_random.rb'
+
 # TODO - could nokogiri help speed up testing?
 
 ###########################################################
@@ -124,95 +140,6 @@ def assertInputValue(expected)
 end
 
 ###########################################################
-# TEST - format button
-###########################################################
-def test_ToggleFormat
-  puts "SUITE: test_ToggleFormat"
-  puts "  TEST: (hex) check disabled buttons"
-  # only . should be disabled
-  $buttonAllIds.each do |id|
-    disabledVal = $browser.button(:id => id).attribute_value("disabled")
-    puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
-    if not id.eql?("buttonDot") and not disabledVal.nil?
-      puts "ERROR: '%s' is disabled" % [id]
-      forceHang
-    end
-    if id.eql?("buttonDot") and disabledVal.nil?
-      puts "ERROR: '%s' is not disabled" % [id]
-      forceHang
-    end
-  end
-
-  puts "  TEST: toggle format to %d"
-  $fmtHex = false
-  click("buttonFormat")
-
-  puts "  TEST: (dec) check disabled buttons"
-  $buttonAllIds.each do |id|
-    disabledVal = $browser.button(:id => id).attribute_value("disabled")
-    puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
-    if not $buttonHexOnlyIds.include?(id) and not disabledVal.nil?
-      puts "ERROR: '%s' is disabled" % [id]
-      forceHang
-    end
-    if $buttonHexOnlyIds.include?(id) and disabledVal.nil?
-      puts "ERROR: '%s' is not disabled" % [id]
-      forceHang
-    end
-  end
-
-  puts "  TEST: toggle format to %x"
-  $fmtHex = true
-  click("buttonFormat")
-end
-
-###########################################################
-# TEST - enter and drop
-###########################################################
-def test_EnterEachNumberThenDrop
-  puts "SUITE: test_EnterEachNumberThenDrop"
-  puts "  TEST: (hex) Each number with 'enter'"
-  for i in 1..15 do
-    click("button%X" % i)
-    #puts inputValueStr()
-    click("buttonEnter")
-    assertResultVal("line0", i)
-  end
-
-  puts "  TEST: (hex) drop previous numbers from stack"
-  for i in 0..14 do
-    assertResultVal("line0", 15-i)
-    click("buttonDrop")
-    assertResultVal("line0", 15-i-1) if i  < 14
-    assertResultEmp("line0")         if i == 14
-  end
-
-  puts "  TEST: toggle format to %%d"
-  $fmtHex = false
-  click("buttonFormat")
-
-  puts "  TEST: (dec) Each number with 'enter'"
-  for i in 1..9 do
-    click("button%X" % i)
-    #puts inputValueStr()
-    click("buttonEnter")
-    assertResultVal("line0", i)
-  end
-
-  puts "  TEST: (dec) drop previous numbers from stack"
-  for i in 0..8 do
-    assertResultVal("line0", 9-i)
-    click("buttonDrop")
-    assertResultVal("line0", 9-i-1) if i  < 8
-    assertResultEmp("line0")        if i == 8
-  end
-
-  puts "  TEST: toggle format to %%x"
-  $fmtHex = true
-  click("buttonFormat")
-end
-
-###########################################################
 # MAIN
 ###########################################################
 $browser = Watir::Browser.new(:chrome)
@@ -224,21 +151,20 @@ puts "Title = " + $browser.title
 
 # TESTS
 test_ToggleFormat
-#test_Clr
-#test_ClrAll
+test_Clr
+test_ClrAll
 test_EnterEachNumberThenDrop
-#test_SimplePlus
-  # hex/dec, op modes, chs
-#test_SimpleMinus
-#test_SimpleMul
-#test_SimpleDiv
-#test_SimpleOr
-#test_SimpleAnd
-#test_SimpleXor
-#test_SimpleNot
-#test_SimpleShiftLeft
-#test_SimpleShiftRight
-#test_Random
+test_SimplePlus
+test_SimpleMinus
+test_SimpleMul
+test_SimpleDiv
+test_SimpleOr
+test_SimpleAnd
+test_SimpleXor
+test_SimpleNot
+test_SimpleShiftLeft
+test_SimpleShiftRight
+test_Random
 
 # DEBUG optional force hang
 if $options.debug
