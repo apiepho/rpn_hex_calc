@@ -8,6 +8,29 @@
 ###########################################################
 def test_SimpleXor
   puts "SUITE: test_SimpleXor"
-  # hex/dec, op modes, chs
-  #puts "  TEST: (hex) check disabled buttons"
+
+  puts "  TEST: (hex) CD enter, AB enter, xor"
+  click("buttonC")
+  click("buttonD")
+  click("buttonEnter")
+  click("buttonA")
+  click("buttonB")
+  click("buttonEnter")
+  click("buttonXor")
+  assertResultVal("line0", (0xCD ^ 0xAB))
+
+  click("buttonClrAll")
+  assertResultEmp("line0")
+
+  puts "  TEST: (hex) CD enter, AB, xor"
+  click("buttonC")
+  click("buttonD")
+  click("buttonEnter")
+  click("buttonA")
+  click("buttonB")
+  click("buttonXor")
+  assertResultVal("line0", (0xCD ^ 0xAB))
+
+  click("buttonClrAll")
+  assertResultEmp("line0")
 end

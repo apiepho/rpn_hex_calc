@@ -8,6 +8,29 @@
 ###########################################################
 def test_SimpleAnd
   puts "SUITE: test_SimpleAnd"
-  # hex/dec, op modes, chs
-  #puts "  TEST: (hex) check disabled buttons"
+
+  puts "  TEST: (hex) CD enter, AB enter, and"
+  click("buttonC")
+  click("buttonD")
+  click("buttonEnter")
+  click("buttonA")
+  click("buttonB")
+  click("buttonEnter")
+  click("buttonAnd")
+  assertResultVal("line0", (0xCD & 0xAB))
+
+  click("buttonClrAll")
+  assertResultEmp("line0")
+
+  puts "  TEST: (hex) CD enter, AB, and"
+  click("buttonC")
+  click("buttonD")
+  click("buttonEnter")
+  click("buttonA")
+  click("buttonB")
+  click("buttonAnd")
+  assertResultVal("line0", (0xCD & 0xAB))
+
+  click("buttonClrAll")
+  assertResultEmp("line0")
 end

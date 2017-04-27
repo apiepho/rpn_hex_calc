@@ -8,8 +8,7 @@
 ###########################################################
 def test_SimplePlus
   puts "SUITE: test_SimplePlus"
-  # hex/dec, op modes, chs
-  #puts "  TEST: (hex) check disabled buttons"
+
   puts "  TEST: (hex) AB enter, CD enter, plus"
   click("buttonA")
   click("buttonB")

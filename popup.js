@@ -233,32 +233,37 @@ function operationClick(op) {
       break;
     case "+":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(val1 + val2);
+      pushValueToDigits(val2 + val1);
       pushLine();
       break;
     case "-":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(val1 - val2);
+      pushValueToDigits(val2 - val1);
       pushLine();
       break;
     case "*":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(val1 * val2);
+      pushValueToDigits(val2 * val1);
       pushLine();
       break;
     case "/":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(Math.round(val1 / val2));
+      pushValueToDigits(Math.floor(val2 / val1));
       pushLine();
       break;
     case "|":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(val1 | val2);
+      pushValueToDigits(val2 | val1);
       pushLine();
       break;
+      case "^":
+        var {val1, val2} = getTwoOperands();
+        pushValueToDigits(val2 ^ val1);
+        pushLine();
+        break;
     case "&amp;":
       var {val1, val2} = getTwoOperands();
-      pushValueToDigits(val1 & val2);
+      pushValueToDigits(val2 & val1);
       pushLine();
       break;
     case "~":
