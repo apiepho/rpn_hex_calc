@@ -4,8 +4,12 @@
 // CONSTANTS
 ///////////////////////////////////////////////////////////
 var LEN_PROMPT      = 2;
-var MAX_DIGITS      = 8;
 var MAX_LINES_SHOWN = 4;
+
+// number F's in MAX_VALUE must match MAX_DIGITS
+// NOTE: works for 12, but not higher.  probably precision of JS
+var MAX_DIGITS      = 8;
+var MAX_VALUE       = 0xFFFFFFFF;
 
 // GLOBAL VARIABLES
 var stack = [];
@@ -16,38 +20,38 @@ var fmtHex = true;
 // TABLES
 ///////////////////////////////////////////////////////////
 var ops = [
-  "drop",   "clr", "ac", "%d",
-  "1", "2", "3",   "+",  "|",
-  "4", "5", "6",   "-",  "&amp;",
-  "7", "8", "9",   "*",  "^",
-  "A", "B", "C",   "/",  "~",
-  "D", "E", "F",   "<<",  ">>",
-  ".", "0", "enter"
+  "drop",    "clr",    "ac",        "%d",
+  "1",   "2", "3",     "+",          "|",
+  "4",   "5", "6",     "-",          "&amp;",
+  "7",   "8", "9",     "*",          "^",
+  "A",   "B", "C",     "/",          "~",
+  "D",   "E", "F",     "<<",         ">>",
+  ".",   "0", "enter",               "+/-"
 ];
 var opNames = [
-  "Drop",     "Clr", "ClrAll",     "Format",
-  "1",   "2", "3",   "Plus",       "Or",
-  "4",   "5", "6",   "Minus",      "And",
-  "7",   "8", "9",   "Mul",        "Xor",
-  "A",   "B", "C",   "Div",        "Not",
-  "D",   "E", "F",   "ShiftLeft",  "ShiftRight",
-  "Dot", "0", "Enter"
+  "Drop",     "Clr",   "ClrAll",     "Format",
+  "1",   "2", "3",     "Plus",       "Or",
+  "4",   "5", "6",     "Minus",      "And",
+  "7",   "8", "9",     "Mul",        "Xor",
+  "A",   "B", "C",     "Div",        "Not",
+  "D",   "E", "F",     "ShiftLeft",  "ShiftRight",
+  "Dot", "0", "Enter",               "Chs"
 ];
 var operations = [
-  "drop",   "clr", "ac", "%d",
-                   "+",  "|",
-                   "-",  "&amp;",
-                   "*",  "^",
-                   "/",  "~",
-                   "<<",  ">>",
-       "enter"
+  "drop",     "clr",   "ac",         "%d",
+                       "+",          "|",
+                       "-",          "&amp;",
+                       "*",          "^",
+                       "/",          "~",
+                       "<<",         ">>",
+              "enter",               "+/-"
 ];
 var opsHexOnly = [
-                         "|",
-                         "&amp;",
-                         "^",
-  "A", "B", "C",         "~",
-  "D", "E", "F",   "<<", ">>",
+                                     "|",
+                                     "&amp;",
+                                     "^",
+  "A",  "B",  "C",                   "~",
+  "D",  "E",  "F",     "<<",         ">>",
   "."
 ];
 
@@ -111,8 +115,14 @@ function showLines() {
     str = i+1 + ": ";
     if (val !== undefined) {
       if (fmtHex) {
-        str += ("00000000" + val.toString(16).substr(-8));
-        str = str.toUpperCase();
+        // add leading 0's
+        vstr = (val < 0 ? (MAX_VALUE + val + 1) : val).toString(16)
+        len = vstr.length;
+        while (vstr.length < MAX_DIGITS) {
+          vstr = "0" + vstr;
+        }
+        vstr = vstr.toUpperCase();
+        str += vstr;
       }
       else {
         str +=  val.toString(10);
@@ -207,7 +217,6 @@ function formatClick() {
 }
 
 function operationClick(op) {
-  console.log("operationClick " + op);
   switch (op) {
     case "drop":
       popLine();
@@ -266,6 +275,11 @@ function operationClick(op) {
       pushValueToDigits(val1 >> 1);
       pushLine();
       break;
+    case "+/-":
+      var val1 = popValueFromDigits();
+      pushValueToDigits(-1 * val1);
+      showDigits();
+      break;
   }
 }
 
@@ -289,10 +303,8 @@ function buttonWidthString(op) {
   result = "button-";
   switch (op) {
     case "drop":
-      result += "double";
-      break;
     case "enter":
-      result += "triple";
+      result += "double";
       break;
     default:
       result += "single";
