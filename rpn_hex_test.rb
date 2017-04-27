@@ -6,10 +6,36 @@ require 'optparse'
 require 'ostruct'
 require 'watir'
 
+###########################################################
+# CONSTANTS and VARIABLES
+###########################################################
 APP_VERSION = "0.1"
+
+buttonIds = [
+  "buttonDrop",           "buttonClr",   "buttonClrAll",     "buttonFormat",
+  "button1",   "button2", "button3",     "buttonPlus",       "buttonOr",
+  "button4",   "button5", "button6",     "buttonMinus",      "buttonAnd",
+  "button7",   "button8", "button9",     "buttonMul",        "buttonXor",
+  "buttonA",   "buttonB", "buttonC",     "buttonDiv",        "buttonNot",
+  "buttonD",   "buttonE", "buttonF",     "buttonShiftLeft",  "buttonShiftRight",
+  "buttonDot", "button0", "buttonEnter",                     "buttonChs"
+]
+
+resultIds = [
+  "line3",
+  "line2",
+  "line1",
+  "line0",
+  "digits"
+]
+
+$fmtHex = true
 
 #url = "file:///Users/Al/Projects/chrome_extensions/rpn_hex_calc/popup.html"
 
+###########################################################
+# program OPTIONS
+###########################################################
 $options = OpenStruct.new
 parser = OptionParser.new do |opt|
     opt.on('-s', '--src <url>',  'url to web app')                  { |o| $options.src          = o    }
@@ -34,32 +60,130 @@ def forceHang
   end
 end
 
-def enterEachNumberThenDrop
-  puts "Each number with 'enter'"
-  for i in 1..15 do
-    $browser.button(:id => "button%X" % i).click
-    $browser.button(:id => 'buttonEnter').click
-    # TODO add test here
-    puts $browser.p(:id => 'line0').text
-  end
+###########################################################
+# BROWSER support
+###########################################################
+# do the browser click for given id
+def click(id)
+  $browser.button(:id => id).click
+end
 
-  puts "drop previous numbers from stack"
-  for i in 1..15 do
-    # TODO add test here
-    puts $browser.p(:id => 'line0').text
-    $browser.button(:id => 'buttonDrop').click
-    # TODO add test here
-    puts $browser.p(:id => 'line0').text
+def resultValueStr(id)
+  val = $browser.p(:id => id).text[3..-1]
+  #val = val.to_i(16) if  $fmtHex
+  #val = val.to_i(10) if !$fmtHex
+  val
+end
+
+def inputValueStr()
+  val = $browser.p(:id => "digits").text[2..-1]
+  #val = val.to_i(16) if  $fmtHex
+  #val = val.to_i(10) if !$fmtHex
+  val
+end
+
+###########################################################
+# ASSERT support
+###########################################################
+def assertResultVal(id, expected)
+  # given expected int, convert to string
+  # and compare vs string at id
+  str = resultValueStr(id)
+  expected = "%08X" % expected if     $fmtHex
+  expected = "%d"   % expected if not $fmtHex
+  puts "DEBUG: result '%s'   expected '%s'" % [str, expected] if $options.debug
+  if not expected.eql?(str)
+    puts "ERROR: result '%s' != expected '%s'" % [str, expected]
+    forceHang
   end
 end
 
+def assertResultEmp(id)
+  # given expected string
+  # compare vs string at id
+  str = resultValueStr(id)
+  puts "DEBUG: result '%s'" % [str] if $options.debug
+  if not str.nil? and str.length > 0
+    puts "ERROR: result '%s' not empty" % [str]
+    forceHang
+  end
+end
+
+def assertInputValue(expected)
+end
+
+###########################################################
+# TEST - enter and drop
+###########################################################
+def test_EnterEachNumberThenDrop
+  puts "TEST: (hex) Each number with 'enter'"
+  for i in 1..15 do
+    click("button%X" % i)
+    #puts inputValueStr()
+    click("buttonEnter")
+    assertResultVal("line0", i)
+  end
+
+  puts "TEST: (hex) drop previous numbers from stack"
+  for i in 0..14 do
+    assertResultVal("line0", 15-i)
+    click("buttonDrop")
+    assertResultVal("line0", 15-i-1) if i  < 14
+    assertResultEmp("line0")         if i == 14
+  end
+
+  puts "TEST: toggle format to %%d"
+  $fmtHex = false
+  click("buttonFormat")
+
+  puts "TEST: (dec) Each number with 'enter'"
+  for i in 1..9 do
+    click("button%X" % i)
+    #puts inputValueStr()
+    click("buttonEnter")
+    assertResultVal("line0", i)
+  end
+
+  puts "TEST: (dec) drop previous numbers from stack"
+  for i in 0..8 do
+    assertResultVal("line0", 9-i)
+    click("buttonDrop")
+    assertResultVal("line0", 9-i-1) if i  < 8
+    assertResultEmp("line0")        if i == 8
+  end
+
+  puts "TEST: toggle format to %%x"
+  $fmtHex = true
+  click("buttonFormat")
+end
+
+###########################################################
+# MAIN
+###########################################################
 $browser = Watir::Browser.new(:chrome)
 $browser.window.resize_to(900, 800)
-$browser.window.move_to(400, 0)
+#$browser.window.move_to(400, 0)
 $browser.goto($options.src)
 
 puts "Title = " + $browser.title
 
-enterEachNumberThenDrop
+# TESTS
+#test_ToggleFormat
+#test_Clr
+#test_ClrAll
+test_EnterEachNumberThenDrop
+#test_SimplePlus
+  # hex/dec, op modes, chs
+#test_SimpleMinus
+#test_SimpleMul
+#test_SimpleDiv
+#test_SimpleOr
+#test_SimpleAnd
+#test_SimpleXor
+#test_SimpleNot
+#test_SimpleShiftLeft
+#test_SimpleShiftRight
+#test_Random
 
+# DEBUG optional force hang
 forceHang if $options.debug
