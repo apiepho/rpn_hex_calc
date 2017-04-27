@@ -11,7 +11,7 @@ def test_ToggleFormat
   puts "  TEST: (hex) check disabled buttons"
   # only . should be disabled
   $buttonAllIds.each do |id|
-    disabledVal = $browser.button(:id => id).attribute_value("disabled")
+    disabledVal = getDisabled(id)
     puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
     if not id.eql?("buttonDot") and not disabledVal.nil?
       puts "ERROR: '%s' is disabled" % [id]
@@ -29,7 +29,7 @@ def test_ToggleFormat
 
   puts "  TEST: (dec) check disabled buttons"
   $buttonAllIds.each do |id|
-    disabledVal = $browser.button(:id => id).attribute_value("disabled")
+    disabledVal = getDisabled(id)
     puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
     if not $buttonHexOnlyIds.include?(id) and not disabledVal.nil?
       puts "ERROR: '%s' is disabled" % [id]

@@ -29,6 +29,8 @@ require './test_random.rb'
 ###########################################################
 APP_VERSION = "0.1"
 
+DEFAULT_RANDOM_CNT = 100
+
 $buttonAllIds = [
   "buttonDrop",           "buttonClr",   "buttonClrAll",     "buttonFormat",
   "button1",   "button2", "button3",     "buttonPlus",       "buttonOr",
@@ -64,10 +66,14 @@ $fmtHex = true
 # program OPTIONS
 ###########################################################
 $options = OpenStruct.new
+$options.seed = Random.new_seed
+$options.cnt = DEFAULT_RANDOM_CNT
 parser = OptionParser.new do |opt|
-    opt.on('-s', '--src <url>',  'url to web app')                  { |o| $options.src          = o    }
-    opt.on('-D', '--Debug',      'debug mode, force hang at end')   { |o| $options.debug        = true }
-    opt.on('-v', '--Version',    'show the current version.')       { |o| $options.version      = true }
+    opt.on('-u', '--url <url>',  'url to web app')                  { |o| $options.url     = o      }
+    opt.on('-s', '--seed <num>', '(optional) randon seed)')         { |o| $options.seed    = o.to_i }
+    opt.on('-c', '--count <num>','(optional) random count')         { |o| $options.cnt     = o.to_i }
+    opt.on('-D', '--Debug',      'debug mode, force hang at end')   { |o| $options.debug   = true   }
+    opt.on('-v', '--Version',    'show the current version.')       { |o| $options.version = true   }
 end
 parser.parse!
 
@@ -75,8 +81,8 @@ if $options.version
     puts "rpn_hex_test: version %s" % APP_VERSION
     exit
 end
-if $options.src.nil?
-    puts "WARNING: please provide a src url"
+if $options.url.nil?
+    puts "WARNING: please provide a url"
     exit
 end
 
@@ -90,23 +96,23 @@ end
 ###########################################################
 # BROWSER support
 ###########################################################
-# do the browser click for given id
 def click(id)
   $browser.button(:id => id).click
 end
 
 def resultValueStr(id)
   val = $browser.p(:id => id).text[3..-1]
-  #val = val.to_i(16) if  $fmtHex
-  #val = val.to_i(10) if !$fmtHex
   val
 end
 
 def inputValueStr()
   val = $browser.p(:id => "digits").text[2..-1]
-  #val = val.to_i(16) if  $fmtHex
-  #val = val.to_i(10) if !$fmtHex
   val
+end
+
+def getDisabled(id)
+  disabledVal = $browser.button(:id => id).attribute_value("disabled")
+  disabledVal
 end
 
 ###########################################################
@@ -137,16 +143,13 @@ def assertResultEmp(id)
   end
 end
 
-def assertInputValue(expected)
-end
-
 ###########################################################
 # MAIN
 ###########################################################
 $browser = Watir::Browser.new(:chrome)
 $browser.window.resize_to(900, 800)
 #$browser.window.move_to(400, 0)
-$browser.goto($options.src)
+$browser.goto($options.url)
 
 puts "Title = " + $browser.title
 
