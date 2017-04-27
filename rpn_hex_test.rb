@@ -6,12 +6,14 @@ require 'optparse'
 require 'ostruct'
 require 'watir'
 
+# TODO - could nokogiri help speed up testing?
+
 ###########################################################
-# CONSTANTS and VARIABLES
+# CONSTANTS and GLOBAL VARIABLES
 ###########################################################
 APP_VERSION = "0.1"
 
-buttonIds = [
+$buttonAllIds = [
   "buttonDrop",           "buttonClr",   "buttonClrAll",     "buttonFormat",
   "button1",   "button2", "button3",     "buttonPlus",       "buttonOr",
   "button4",   "button5", "button6",     "buttonMinus",      "buttonAnd",
@@ -21,7 +23,16 @@ buttonIds = [
   "buttonDot", "button0", "buttonEnter",                     "buttonChs"
 ]
 
-resultIds = [
+$buttonHexOnlyIds = [
+                                                             "buttonOr",
+                                                             "buttonAnd",
+                                                             "buttonXor",
+  "buttonA",   "buttonB", "buttonC",                         "buttonNot",
+  "buttonD",   "buttonE", "buttonF",     "buttonShiftLeft",  "buttonShiftRight",
+  "buttonDot"
+]
+
+$resultIds = [
   "line3",
   "line2",
   "line1",
@@ -91,7 +102,7 @@ def assertResultVal(id, expected)
   str = resultValueStr(id)
   expected = "%08X" % expected if     $fmtHex
   expected = "%d"   % expected if not $fmtHex
-  puts "DEBUG: result '%s'   expected '%s'" % [str, expected] if $options.debug
+  puts "  DEBUG: result '%s'   expected '%s'" % [str, expected] if $options.debug
   if not expected.eql?(str)
     puts "ERROR: result '%s' != expected '%s'" % [str, expected]
     forceHang
@@ -102,7 +113,7 @@ def assertResultEmp(id)
   # given expected string
   # compare vs string at id
   str = resultValueStr(id)
-  puts "DEBUG: result '%s'" % [str] if $options.debug
+  puts "  DEBUG: result '%s'" % [str] if $options.debug
   if not str.nil? and str.length > 0
     puts "ERROR: result '%s' not empty" % [str]
     forceHang
@@ -113,10 +124,54 @@ def assertInputValue(expected)
 end
 
 ###########################################################
+# TEST - format button
+###########################################################
+def test_ToggleFormat
+  puts "SUITE: test_ToggleFormat"
+  puts "  TEST: (hex) check disabled buttons"
+  # only . should be disabled
+  $buttonAllIds.each do |id|
+    disabledVal = $browser.button(:id => id).attribute_value("disabled")
+    puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
+    if not id.eql?("buttonDot") and not disabledVal.nil?
+      puts "ERROR: '%s' is disabled" % [id]
+      forceHang
+    end
+    if id.eql?("buttonDot") and disabledVal.nil?
+      puts "ERROR: '%s' is not disabled" % [id]
+      forceHang
+    end
+  end
+
+  puts "  TEST: toggle format to %d"
+  $fmtHex = false
+  click("buttonFormat")
+
+  puts "  TEST: (dec) check disabled buttons"
+  $buttonAllIds.each do |id|
+    disabledVal = $browser.button(:id => id).attribute_value("disabled")
+    puts "  DEBUG: id %s   result '%s'" % [id, disabledVal] if $options.debug
+    if not $buttonHexOnlyIds.include?(id) and not disabledVal.nil?
+      puts "ERROR: '%s' is disabled" % [id]
+      forceHang
+    end
+    if $buttonHexOnlyIds.include?(id) and disabledVal.nil?
+      puts "ERROR: '%s' is not disabled" % [id]
+      forceHang
+    end
+  end
+
+  puts "  TEST: toggle format to %x"
+  $fmtHex = true
+  click("buttonFormat")
+end
+
+###########################################################
 # TEST - enter and drop
 ###########################################################
 def test_EnterEachNumberThenDrop
-  puts "TEST: (hex) Each number with 'enter'"
+  puts "SUITE: test_EnterEachNumberThenDrop"
+  puts "  TEST: (hex) Each number with 'enter'"
   for i in 1..15 do
     click("button%X" % i)
     #puts inputValueStr()
@@ -124,7 +179,7 @@ def test_EnterEachNumberThenDrop
     assertResultVal("line0", i)
   end
 
-  puts "TEST: (hex) drop previous numbers from stack"
+  puts "  TEST: (hex) drop previous numbers from stack"
   for i in 0..14 do
     assertResultVal("line0", 15-i)
     click("buttonDrop")
@@ -132,11 +187,11 @@ def test_EnterEachNumberThenDrop
     assertResultEmp("line0")         if i == 14
   end
 
-  puts "TEST: toggle format to %%d"
+  puts "  TEST: toggle format to %%d"
   $fmtHex = false
   click("buttonFormat")
 
-  puts "TEST: (dec) Each number with 'enter'"
+  puts "  TEST: (dec) Each number with 'enter'"
   for i in 1..9 do
     click("button%X" % i)
     #puts inputValueStr()
@@ -144,7 +199,7 @@ def test_EnterEachNumberThenDrop
     assertResultVal("line0", i)
   end
 
-  puts "TEST: (dec) drop previous numbers from stack"
+  puts "  TEST: (dec) drop previous numbers from stack"
   for i in 0..8 do
     assertResultVal("line0", 9-i)
     click("buttonDrop")
@@ -152,7 +207,7 @@ def test_EnterEachNumberThenDrop
     assertResultEmp("line0")        if i == 8
   end
 
-  puts "TEST: toggle format to %%x"
+  puts "  TEST: toggle format to %%x"
   $fmtHex = true
   click("buttonFormat")
 end
@@ -168,7 +223,7 @@ $browser.goto($options.src)
 puts "Title = " + $browser.title
 
 # TESTS
-#test_ToggleFormat
+test_ToggleFormat
 #test_Clr
 #test_ClrAll
 test_EnterEachNumberThenDrop
@@ -186,4 +241,7 @@ test_EnterEachNumberThenDrop
 #test_Random
 
 # DEBUG optional force hang
-forceHang if $options.debug
+if $options.debug
+  puts "  DEBUG: force hang"
+  forceHang
+end
